@@ -221,6 +221,12 @@ func (s *OnusServer) routes(ctx context.Context) *chi.Mux {
 		})
 	})
 
+	// Version endpoint
+	r.Route("/api/version", func(r chi.Router) {
+		r.Use(MiddlewarePrettyPrint)
+		r.Get("/", handler.GetApiVersion)
+	})
+
 	// API routes
 	r.Route("/api", func(r chi.Router) {
 		// All API routes require a valid session
