@@ -2,9 +2,9 @@ services:
   db:
     image: postgres:18
     environment:
-      POSTGRES_USER: onus
-      POSTGRES_PASSWORD: Passw0rd1
-      POSTGRES_DB: onus
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -21,5 +21,33 @@ services:
       PGADMIN_DEFAULT_PASSWORD: Passw0rd1
     ports:
       - 5555:80
+  onus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    ports:
+      - "8888:8888"
+    environment:
+      ONUS_SERVER_URL: ${SERVER_URL}
+      ONUS_SERVER_PORT: ${SERVER_PORT}
+      ONUS_SERVER_STATIC_DIR: /app/static
+
+      ONUS_DB_TYPE: postgres
+      ONUS_DB_HOST: db
+      ONUS_DB_NAME: ${DB_NAME}
+      ONUS_DB_USER: ${DB_USER}
+      ONUS_DB_PASS: ${DB_PASS}
+      ONUS_AUTH_OIDC_ENABLED: true
+
+      # Replace "ENTRA" with your desired provider name if different
+      ONUS_AUTH_OIDC_PROVIDER_ENTRA_ISSUER_URL: ${OIDC_ISSUER_URL}
+      ONUS_AUTH_OIDC_PROVIDER_ENTRA_CLIENT_ID: ${OIDC_CLIENT_ID}
+      ONUS_AUTH_OIDC_PROVIDER_ENTRA_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      ONUS_AUTH_OIDC_PROVIDER_ENTRA_SCOPES: openid email profile
+
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   db_data:

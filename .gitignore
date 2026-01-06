@@ -10,6 +10,12 @@ onus.yml
 .vscode/
 .VSCodeCounter/
 
+# OS Artifacts
+**/.DS_Store
+
+# Git
+.git
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -39,3 +45,15 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Node / SvelteKit
+webapp/node_modules
+webapp/.svelte-kit
+webapp/build
+webapp/dist
+webapp/.pnpm-store
+webapp/.turbo
+webapp/.vite
+
+# Log files
+**/*.log
