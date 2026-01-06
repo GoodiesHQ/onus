@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: onus
+      POSTGRES_PASSWORD: Passw0rd1
+      POSTGRES_DB: onus
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  dbadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@email.com
+      PGADMIN_DEFAULT_PASSWORD: Passw0rd1
+    ports:
+      - 5555:80
+volumes:
+  db_data:
