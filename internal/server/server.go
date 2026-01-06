@@ -6,6 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,11 +23,12 @@ import (
 )
 
 type OnusServer struct {
-	host string
-	port uint16
-	url  string
-	core core.Core
-	sm   *scs.SessionManager
+	host      string
+	port      uint16
+	url       string
+	core      core.Core
+	sm        *scs.SessionManager
+	staticDir *string
 }
 
 // Url constructs a full URL by appending the given parts to the base URL
@@ -49,13 +53,22 @@ func NewOnusServer(cfg *config.ServerConfig, core core.Core, store scs.Store) *O
 		sm.Cookie.Secure = true
 	}
 
+	var staticDir *string
+	info, err := os.Stat(cfg.StaticDir)
+	if err != nil || !info.IsDir() {
+		log.Warn().Msgf("Static directory %q is invalid. Serving API only.", cfg.StaticDir)
+	} else {
+		staticDir = &cfg.StaticDir
+	}
+
 	// Create and return the OnusServer instance
 	return &OnusServer{
-		host: cfg.Host,
-		port: cfg.Port,
-		url:  cfg.URL,
-		core: core,
-		sm:   sm,
+		host:      cfg.Host,
+		port:      cfg.Port,
+		url:       cfg.URL,
+		core:      core,
+		sm:        sm,
+		staticDir: staticDir,
 	}
 }
 
@@ -88,6 +101,10 @@ func (s *OnusServer) Run(ctx context.Context, cfg *config.OnusConfig) error {
 
 	r := s.routes(ctx)
 
+	if s.staticDir != nil {
+		r.NotFound(s.static(*s.staticDir))
+	}
+
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", s.host, s.port),
 		Handler: r,
@@ -101,7 +118,7 @@ func (s *OnusServer) Run(ctx context.Context, cfg *config.OnusConfig) error {
 		httpServer.Shutdown(ctx)
 	}()
 
-	log.Info().Msgf("Starting Onus server on :%d", s.port)
+	log.Info().Msgf("Starting Onus server on %s:%d", s.host, s.port)
 	if err := httpServer.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return fmt.Errorf("failed to start HTTP server: %w", err)
@@ -116,7 +133,52 @@ func init() {
 	gob.Register(time.Time{})
 }
 
-func (s *OnusServer) routes(ctx context.Context) http.Handler {
+func (s *OnusServer) static(staticDir string) http.HandlerFunc {
+	fs := http.Dir(staticDir)
+	fileServer := http.FileServer(fs)
+	indexPath := filepath.Join(staticDir, "index.html")
+
+	if _, err := os.Stat(indexPath); err != nil {
+		log.Error().Err(err).Msgf("index.html not found at %q", indexPath)
+	} else {
+		log.Info().Msgf("Serving SPA index at %q", indexPath)
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// serve the static folder here...
+		if strings.HasPrefix(r.URL.Path, "/api") || strings.HasPrefix(r.URL.Path, "/auth") {
+			http.NotFound(w, r)
+			return
+		}
+
+		// Normalize path
+		clean := path.Clean(r.URL.Path)
+		if clean == "." {
+			clean = "/"
+		}
+
+		if clean == "/" {
+			w.Header().Set("Cache-Control", "no-store")
+			http.ServeFile(w, r, indexPath)
+			return
+		}
+
+		// Check if the file has an extension, assume it's a static asset
+		if ext := path.Ext(clean); ext != "" {
+			if strings.HasPrefix(clean, "/_app/") {
+				// TODO: adjust caching as needed
+				// w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("Cache-Control", "no-store")
+		http.ServeFile(w, r, indexPath)
+	})
+}
+
+func (s *OnusServer) routes(ctx context.Context) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Global middleware

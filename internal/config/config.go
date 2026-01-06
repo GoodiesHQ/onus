@@ -23,9 +23,10 @@ const (
 )
 
 type ServerConfig struct {
-	Host string `yaml:"host"`
-	Port uint16 `yaml:"port"`
-	URL  string `yaml:"url"`
+	Host      string `yaml:"host"`
+	Port      uint16 `yaml:"port"`
+	URL       string `yaml:"url"`
+	StaticDir string `yaml:"static_dir"`
 }
 
 type DatabaseConfig struct {
@@ -175,6 +176,10 @@ func envOverrides(cfg *OnusConfig) error {
 
 	if url := os.Getenv("ONUS_SERVER_URL"); url != "" {
 		cfg.Server.URL = url
+	}
+
+	if staticDir := os.Getenv("ONUS_SERVER_STATIC_DIR"); staticDir != "" {
+		cfg.Server.StaticDir = staticDir
 	}
 
 	// Database overrides
