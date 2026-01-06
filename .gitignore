@@ -57,3 +57,6 @@ webapp/.vite
 
 # Log files
 **/*.log
+
+# Version files
+webapp/src/lib/version.ts
