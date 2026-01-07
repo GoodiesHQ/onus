@@ -2,6 +2,7 @@
 	import { toast } from '$lib/stores';
 	import { AuthRole, type UserWithRole } from '$lib/types';
 	import type { PollingResource } from '$lib/utils/poller.svelte';
+	import Page from '../../routes/+page.svelte';
 
 	type ListUserEntryProps = {
 		user: UserWithRole;
@@ -15,12 +16,40 @@
 
 	// svelte-ignore state_referenced_locally
 	let role = $state(user.role);
+	let roleDisabled = $state(false);
 
 	async function setRole() {
+		roleDisabled = true;
 		// you can also route role-change through parent if you want
-		toast.error('Failed to update user role.', { detail: 'Not implemented yet' });
-		role = user.role;
+		try {
+			const res = await fetch(`/api/admin/users/${user.user_id}/role`, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body: JSON.stringify({ role }),
+			});
+			if (!res.ok) {
+				const detail = await res.text().catch(() => res.statusText);
+				toast.error('Failed to update user role.', { detail: detail || res.statusText });
+				// revert select
+				role = user.role;
+				return;
+			}
+			// Update user in list
+			for (let u of users.value ?? []) {
+				if (u.user_id === user.user_id) {
+					u.role = role;
+					break;
+				}
+			}
+		} catch (e) {
+			toast.error('Failed to update user role.', { detail: String(e) });
+			// revert select
+			role = user.role;
+		} finally {
+			roleDisabled = false;
+		}
 	}
+
 </script>
 
 <tr class="h-14 align-top">
@@ -53,7 +82,7 @@
 	</td>
 
 	<td>
-		<select class="select w-32 select-sm" bind:value={role} onchange={setRole} disabled={busy}>
+		<select class="select w-32 select-sm" bind:value={role} onchange={setRole} disabled={busy || roleDisabled}>
 			<option value={AuthRole.Member}>Member</option>
 			<option value={AuthRole.Admin}>Admin</option>
 			<option value={AuthRole.Owner}>Owner</option>
