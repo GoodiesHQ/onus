@@ -23,7 +23,7 @@
 		// you can also route role-change through parent if you want
 		try {
 			const res = await fetch(`/api/admin/users/${user.user_id}/role`, {
-				method: 'POST',
+				method: 'PATCH',
 				credentials: 'same-origin',
 				body: JSON.stringify({ role }),
 			});
