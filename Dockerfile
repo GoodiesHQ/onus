@@ -35,7 +35,16 @@ COPY sql/ ./sql/
 COPY fs.go ./
 
 ENV CGO_ENABLED=0
-RUN go build -trimpath -ldflags="-s -w" -o /out/onus ./cmd
+
+ARG ONUS_VERSION
+ARG ONUS_COMMIT
+ARG ONUS_DATE
+
+RUN go build -trimpath -ldflags="-s -w \
+  -X github.com/goodieshq/onus/internal/buildinfo.Version=${ONUS_VERSION} \
+  -X github.com/goodieshq/onus/internal/buildinfo.Commit=${ONUS_COMMIT} \
+  -X github.com/goodieshq/onus/internal/buildinfo.Date=${ONUS_BUILD_DATE}" \
+  -o /out/onus ./cmd
 
 # ----------------------
 # 3) Final runtime image
