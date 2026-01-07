@@ -1,0 +1,89 @@
+services:
+  # Postgres 18 database for Onus, stores tasks and sessions
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-onus}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME:-onus}
+    volumes:
+      - onus-db:/var/lib/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Onus-migrate will ensure the database schema is up to date.
+  migrate:
+    image: ghcr.io/goodieshq/onus:${ONUS_VERSION:-latest}
+    command: ["migrate", "up"]
+    environment:
+      ONUS_DB_TYPE: postgres
+      ONUS_DB_HOST: db
+      ONUS_DB_NAME: ${DB_NAME:-onus}
+      ONUS_DB_USER: ${DB_USER:-onus}
+      ONUS_DB_PASS: ${DB_PASS}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - backend
+
+  # Onus is the public server. Internal port does not need to match URL port.
+  onus:
+    image: ghcr.io/goodieshq/onus:${ONUS_VERSION:-latest}
+    command: ["serve"]
+    env_file:
+      - ./providers.env
+    environment:
+      # Server info
+      ONUS_SERVER_URL: ${SERVER_URL}
+      ONUS_SERVER_PORT: ${SERVER_PORT:-8888}
+      ONUS_SERVER_STATIC_DIR: ${SERVER_STATIC_DIR:-/app/static}
+      # Database info
+      ONUS_DB_TYPE: postgres
+      ONUS_DB_HOST: db
+      ONUS_DB_NAME: ${DB_NAME:-onus}
+      ONUS_DB_USER: ${DB_USER:-onus}
+      ONUS_DB_PASS: ${DB_PASS}
+      # Auth info
+      ONUS_AUTH_OIDC_ENABLED: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - frontend
+      - backend
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "frontend"
+      traefik.http.middlewares.onus-ratelimit.ratelimit.average: "25"
+      traefik.http.middlewares.onus-ratelimit.ratelimit.burst: "100"
+      traefik.http.routers.onus.rule: Host(`todo.example.com`)
+      traefik.http.routers.onus.entrypoints: websecure
+      traefik.http.routers.onus.tls: "true"
+      traefik.http.routers.onus.tls.certresolver: my_resolver
+      traefik.http.routers.onus.middlewares: onus-ratelimit
+      traefik.http.services.onus.loadbalancer.server.port: 8888
+      traefik.http.services.onus.loadbalancer.server.scheme: http
+
+volumes:
+  onus-db:
+    name: onus-db
+    driver: local
+    driver_opts:
+      type: none
+      device: "/app/volumes/onus/db"
+      o: bind
+
+networks:
+  # frontend is the network you use to connect to your reverse proxy (e.g., Traefik)
+  frontend:
+    external: true
+  backend: {}
