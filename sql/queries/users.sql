@@ -74,8 +74,6 @@ SET
     name = sqlc.arg('name')::TEXT
 WHERE
   id = sqlc.arg('user_id')::UUID
-  AND
-  organization_id = sqlc.arg('organization_id')::UUID
 RETURNING *;
 
 -- name: UpdateUserRole :one

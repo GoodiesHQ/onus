@@ -215,19 +215,16 @@ SET
     name = $1::TEXT
 WHERE
   id = $2::UUID
-  AND
-  organization_id = $3::UUID
 RETURNING id, email, name, created_at
 `
 
 type UpdateUserNameParams struct {
-	Name           string    `db:"name" json:"name"`
-	UserID         uuid.UUID `db:"user_id" json:"user_id"`
-	OrganizationID uuid.UUID `db:"organization_id" json:"organization_id"`
+	Name   string    `db:"name" json:"name"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserName, arg.Name, arg.UserID, arg.OrganizationID)
+	row := q.db.QueryRow(ctx, updateUserName, arg.Name, arg.UserID)
 	var i User
 	err := row.Scan(
 		&i.ID,
