@@ -108,9 +108,7 @@
 		<!-- clicking the overlay closes drawer -->
 		<button class="drawer-overlay" onclick={closeTask} title="Close task editor"></button>
 
-		<aside
-			class="flex h-full w-[92vw] max-w-5xl flex-col border-l border-base-300 bg-base-100 shadow-2xl"
-		>
+		<aside class="flex h-full w-[92vw] max-w-5xl flex-col border-l border-base-300 bg-base-100 shadow-2xl">
 			<div class="flex items-center justify-between border-b border-base-300 p-4">
 				<div class="text-lg font-semibold">Edit Task</div>
 				<button class="btn btn-ghost btn-sm" type="button" onclick={closeTask}>Close</button>

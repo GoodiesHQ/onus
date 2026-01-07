@@ -145,10 +145,7 @@
 			</select>
 		</div>
 		<div class="form-control w-full items-center md:col-span-2">
-			<Label
-				target="assigned-by"
-				text={`Assigned ${scope === TaskListScope.Assigned ? 'By' : 'To'}`}
-			/>
+			<Label target="assigned-by" text={`Assigned ${scope === TaskListScope.Assigned ? 'By' : 'To'}`} />
 			<UserSelect
 				bind:user_id={filterAssignmentId}
 				bind:user_name={filterAssignmentName}

@@ -41,8 +41,7 @@
 	let filtered_users = $derived(
 		users.all?.filter(
 			(user) =>
-				user.name.toLowerCase().includes(query.toLowerCase()) ||
-				user.email.toLowerCase().includes(query.toLowerCase()),
+				user.name.toLowerCase().includes(query.toLowerCase()) || user.email.toLowerCase().includes(query.toLowerCase()),
 		) ?? [],
 	);
 
@@ -120,9 +119,7 @@
 	/>
 
 	{#if !readonly && show_user_dropdown && filtered_users.length > 0}
-		<ul
-			class="menu absolute top-full z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-box bg-base-100 shadow-lg"
-		>
+		<ul class="menu absolute top-full z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-box bg-base-100 shadow-lg">
 			{#if required === false}
 				<li>
 					<button
@@ -140,12 +137,7 @@
 			{/if}
 			{#each filtered_users as user}
 				<li>
-					<button
-						{disabled}
-						type="button"
-						onclick={() => selectUser(user)}
-						class="flex flex-col items-start"
-					>
+					<button {disabled} type="button" onclick={() => selectUser(user)} class="flex flex-col items-start">
 						<span class="font-semibold">{user.name}</span>
 						<span class="text-xs text-base-content/70">{user.email}</span>
 					</button>

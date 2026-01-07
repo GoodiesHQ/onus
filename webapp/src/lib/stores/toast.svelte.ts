@@ -15,11 +15,7 @@ function generateId(): string {
 
 type ToastAPI = {
 	items: ToastItem[];
-	push: (
-		kind: ToastKind,
-		message: string,
-		opts?: { detail?: string; durationMs?: number },
-	) => string;
+	push: (kind: ToastKind, message: string, opts?: { detail?: string; durationMs?: number }) => string;
 	dismiss: (id: string) => void;
 	clear: () => void;
 
@@ -31,11 +27,7 @@ type ToastAPI = {
 export function createToastStore(): ToastAPI {
 	let items = $state<ToastItem[]>([]);
 
-	function push(
-		kind: ToastKind,
-		message: string,
-		opts?: { detail?: string; durationMs?: number },
-	): string {
+	function push(kind: ToastKind, message: string, opts?: { detail?: string; durationMs?: number }): string {
 		const id = generateId();
 		const durationMs = opts?.durationMs ?? (kind === 'error' ? 10_000 : 5_000);
 		items.push({

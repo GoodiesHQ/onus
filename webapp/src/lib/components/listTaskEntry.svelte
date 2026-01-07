@@ -78,9 +78,7 @@
 	});
 </script>
 
-<tr
-	class={`h-14 align-top ${task.status === TaskStatus.Complete ? 'line-through opacity-50' : ''}`}
->
+<tr class={`h-14 align-top ${task.status === TaskStatus.Complete ? 'line-through opacity-50' : ''}`}>
 	<!-- Done -->
 	<td class="w-12 align-middle">
 		<input

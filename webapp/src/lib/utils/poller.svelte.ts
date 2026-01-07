@@ -21,10 +21,7 @@ type CreatePollingResourceOptions<T> = {
 	unauthorizedValue?: null;
 };
 
-export function createPollingResource<T>(
-	url: string,
-	opts: CreatePollingResourceOptions<T> = {},
-): PollingResource<T> {
+export function createPollingResource<T>(url: string, opts: CreatePollingResourceOptions<T> = {}): PollingResource<T> {
 	const credentials = opts.credentials ?? 'same-origin';
 	const defaultInterval = opts.interval ?? 30000;
 

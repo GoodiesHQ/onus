@@ -21,9 +21,7 @@
 
 		// Handle redirects based on auth state
 		const isLoginOrAuth =
-			$page.url.pathname.startsWith('/login') ||
-			$page.url.pathname.startsWith('/auth') ||
-			$page.url.pathname === '/';
+			$page.url.pathname.startsWith('/login') || $page.url.pathname.startsWith('/auth') || $page.url.pathname === '/';
 
 		if (auth.isAuthenticated && isLoginOrAuth) {
 			// If authenticated but on login or home page, redirect to the app

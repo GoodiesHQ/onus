@@ -11,13 +11,7 @@
 		busy: boolean;
 	};
 
-	let {
-		user,
-		users = $bindable(),
-		enableUser,
-		requestDisable,
-		busy,
-	}: ListUserEntryProps = $props();
+	let { user, users = $bindable(), enableUser, requestDisable, busy }: ListUserEntryProps = $props();
 
 	// svelte-ignore state_referenced_locally
 	let role = $state(user.role);
@@ -40,9 +34,7 @@
 			{#if user.disabled_at === null}
 				<span class="font-bold text-success">Active</span>
 			{:else}
-				<span class="font-bold text-warning"
-					>Disabled {new Date(user.disabled_at).toLocaleString()}</span
-				>
+				<span class="font-bold text-warning">Disabled {new Date(user.disabled_at).toLocaleString()}</span>
 			{/if}
 			<div class="text-base-content/75" class:invisible={!user.disabled_at}>
 				{user.disabled_reason ?? ''}
@@ -51,21 +43,11 @@
 
 		<div>
 			{#if user.disabled_at === null}
-				<button
-					class="btn w-16 btn-xs btn-error"
-					disabled={busy}
-					onclick={() => requestDisable(user)}
-				>
+				<button class="btn w-16 btn-xs btn-error" disabled={busy} onclick={() => requestDisable(user)}>
 					Disable
 				</button>
 			{:else}
-				<button
-					class="btn w-16 btn-xs btn-success"
-					disabled={busy}
-					onclick={() => enableUser(user)}
-				>
-					Enable
-				</button>
+				<button class="btn w-16 btn-xs btn-success" disabled={busy} onclick={() => enableUser(user)}> Enable </button>
 			{/if}
 		</div>
 	</td>

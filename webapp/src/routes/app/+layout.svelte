@@ -5,6 +5,11 @@
 	import { page } from '$app/state';
 	import Icon from '@iconify/svelte';
 
+	var VERSION: string = $state('dev');
+	import('$lib/version').then((module) => {
+		VERSION = module.VERSION;
+	});
+
 	let { children } = $props();
 	let currentPath = $derived(page.url.pathname);
 
@@ -25,11 +30,7 @@
 	];
 
 	const navbarAdmin: NavItem[] = [
-		{
-			label: 'Organization Settings',
-			icon: 'mdi:view-dashboard-outline',
-			href: '/app/admin/organization',
-		},
+		{ label: 'Organization Settings', icon: 'mdi:view-dashboard-outline', href: '/app/admin/organization' },
 		{ label: 'User Management', icon: 'mdi:account-multiple-outline', href: '/app/admin/users' },
 	];
 
@@ -64,12 +65,7 @@
 						viewBox="0 0 24 24"
 						class="inline-block h-6 w-6 stroke-current"
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 6h16M4 12h16M4 18h16"
-						></path>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
 					</svg>
 				</label>
 			</div>
@@ -90,6 +86,7 @@
 			<!-- Sidebar header -->
 			<div class="border-b border-base-300 pb-4">
 				<h1 class="px-4 pt-2 text-2xl tracking-widest uppercase font-stretch-125%">Onus</h1>
+				<h2 class="px-4 pt-2 text-xs font-light text-base-content/70">{VERSION}</h2>
 				<div class="card my-8 bg-base-300 shadow-xs">
 					<div class="my-4 px-4 text-lg">
 						<div class="text-md font-extralight text-base-content/75" class:invisible={!auth.self}>

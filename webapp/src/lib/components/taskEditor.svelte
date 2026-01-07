@@ -212,12 +212,7 @@
 	</div>
 	<div class="col-span-1">
 		<Label target="task-priority" text="Priority" />
-		<select
-			id="task-priority"
-			bind:value={priority}
-			class="select-bordered select flex-1"
-			disabled={!isAssigner}
-		>
+		<select id="task-priority" bind:value={priority} class="select-bordered select flex-1" disabled={!isAssigner}>
 			<option value={TaskPriority.Low}>Low</option>
 			<option value={TaskPriority.Medium}>Medium </option>
 			<option value={TaskPriority.High}>High</option>
@@ -251,26 +246,14 @@
 	</div>
 	<div class="col-span-full mt-20 flex items-center justify-between">
 		<div class:invisible={!isAssigner && !auth.isAdmin}>
-			<button
-				type="button"
-				class="btn btn-sm btn-error"
-				onclick={requestDelete}
-				aria-label="Delete task"
-			>
+			<button type="button" class="btn btn-sm btn-error" onclick={requestDelete} aria-label="Delete task">
 				<Icon icon="mdi:delete" class="inline-block h-5 w-5 p-0" />
 			</button>
 		</div>
 		<div class="flex items-center gap-3">
 			<button type="button" class="btn w-32 btn-ghost btn-sm" onclick={onClose}> Cancel </button>
 
-			<button
-				type="button"
-				class="btn w-32 btn-sm btn-primary"
-				disabled={anyInvalid}
-				onclick={save}
-			>
-				Save
-			</button>
+			<button type="button" class="btn w-32 btn-sm btn-primary" disabled={anyInvalid} onclick={save}> Save </button>
 		</div>
 	</div>
 </form>
@@ -289,12 +272,7 @@
 
 		<div class="modal-action">
 			<button type="button" class="btn" onclick={cancelDelete}>Cancel</button>
-			<button
-				type="button"
-				class="btn btn-error"
-				disabled={!confirmDeleteChecked || deleting}
-				onclick={doDelete}
-			>
+			<button type="button" class="btn btn-error" disabled={!confirmDeleteChecked || deleting} onclick={doDelete}>
 				{deleting ? 'Deleting...' : 'Delete'}
 			</button>
 		</div>

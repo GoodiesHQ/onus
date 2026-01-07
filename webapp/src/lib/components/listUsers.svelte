@@ -20,8 +20,7 @@
 		}
 		const lowerFilter = filter.trim().toLowerCase();
 		return users.value?.filter(
-			(u: UserWithRole) =>
-				u.name.toLowerCase().includes(lowerFilter) || u.email.toLowerCase().includes(lowerFilter),
+			(u: UserWithRole) => u.name.toLowerCase().includes(lowerFilter) || u.email.toLowerCase().includes(lowerFilter),
 		);
 	});
 
@@ -145,13 +144,7 @@
 				</thead>
 				<tbody>
 					{#each filteredUsers as user (user.user_id)}
-						<ListUserEntry
-							{users}
-							{user}
-							{enableUser}
-							{requestDisable}
-							busy={isBusy(user.user_id)}
-						/>
+						<ListUserEntry {users} {user} {enableUser} {requestDisable} busy={isBusy(user.user_id)} />
 					{/each}
 				</tbody>
 			</table>

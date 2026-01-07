@@ -24,12 +24,7 @@
 				{/if}
 			</div>
 
-			<button
-				type="button"
-				class="btn btn-ghost btn-xs"
-				aria-label="Dismiss toast"
-				onclick={() => toast.dismiss(t.id)}
-			>
+			<button type="button" class="btn btn-ghost btn-xs" aria-label="Dismiss toast" onclick={() => toast.dismiss(t.id)}>
 				✕
 			</button>
 		</div>

@@ -9,9 +9,7 @@
 	let domain = $state('');
 
 	let saving = $state(false);
-	let saveEnabled = $derived(
-		!saving && name.trim().length > 0 && name !== auth.self?.organization_name,
-	);
+	let saveEnabled = $derived(!saving && name.trim().length > 0 && name !== auth.self?.organization_name);
 
 	onMount(async () => {
 		await auth.wait();
