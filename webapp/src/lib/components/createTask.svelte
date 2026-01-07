@@ -64,8 +64,9 @@
 				due_by = '';
 				show_advanced = false;
 				tasks.fetchNow(); // Refresh task list
-				toast.success('Task created successfully');
 			} else {
+				const detail = await res.text().catch(() => res.statusText);
+				toast.error('Failed to create task.', { detail: detail || res.statusText });
 			}
 		} catch (error) {
 			console.error('Failed to create task:', error);
