@@ -198,6 +198,32 @@ func (h *OnusHandler) PatchApiAdminUserRole(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	targetUserRole, _, err := h.core.GetAssignment(ctx, targetUserID, oid)
+	if err != nil {
+		if err == core.ErrNotFound {
+			http.Error(w, "Target user not found", http.StatusNotFound)
+			return
+		}
+		log.Error().Err(err).Msg("failed to get target user assignment")
+		http.Error(w, "Failed to get target user's role assignment", http.StatusInternalServerError)
+		return
+	}
+
+	if targetUserRole > role {
+		http.Error(w, "Cannot modify a user with a higher role than your own", http.StatusForbidden)
+		return
+	}
+
+	if targetUserRole == req.Role {
+		http.Error(w, "User already has the specified role", http.StatusBadRequest)
+		return
+	}
+
+	if targetUserRole == core.RoleOwner {
+		http.Error(w, "Cannot modify owner role, must transfer ownership.", http.StatusForbidden)
+		return
+	}
+
 	// Update the user's role
 	assignment, err := h.core.UpdateUserRole(ctx, targetUserID, oid, req.Role)
 	if err != nil {

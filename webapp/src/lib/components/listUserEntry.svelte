@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { toast } from '$lib/stores';
+	import { auth, toast } from '$lib/stores';
 	import { AuthRole, type UserWithRole } from '$lib/types';
 	import type { PollingResource } from '$lib/utils/poller.svelte';
 	import Page from '../../routes/+page.svelte';
@@ -60,12 +60,14 @@
 
 	<td class="flex flex-row items-center justify-between">
 		<div class="text-xs">
-			{#if user.disabled_at === null}
-				<span class="font-bold text-success">Active</span>
-			{:else}
-				<span class="font-bold text-warning">Disabled {new Date(user.disabled_at).toLocaleString()}</span>
-			{/if}
-			<div class="text-base-content/75" class:invisible={!user.disabled_at}>
+			<div class="h-4">
+				{#if user.disabled_at === null}
+					<span class="font-bold text-success">Active</span>
+				{:else}
+					<span class="font-bold text-warning">Disabled {new Date(user.disabled_at).toLocaleString()}</span>
+				{/if}
+			</div>
+			<div class="h-3 text-base-content/75">
 				{user.disabled_reason ?? ''}
 			</div>
 		</div>
@@ -82,10 +84,13 @@
 	</td>
 
 	<td>
-		<select class="select w-32 select-sm" bind:value={role} onchange={setRole} disabled={busy || roleDisabled}>
-			<option value={AuthRole.Member}>Member</option>
-			<option value={AuthRole.Admin}>Admin</option>
-			<option value={AuthRole.Owner}>Owner</option>
-		</select>
+		{#if user.role === AuthRole.Owner}
+			<span class="">Owner</span>
+		{:else}
+			<select class="select w-32 select-sm" bind:value={role} onchange={setRole} disabled={busy || roleDisabled}>
+				<option value={AuthRole.Member}>Member</option>
+				<option value={AuthRole.Admin}>Admin</option>
+			</select>
+		{/if}
 	</td>
 </tr>
