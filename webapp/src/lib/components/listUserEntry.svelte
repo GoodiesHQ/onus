@@ -49,7 +49,6 @@
 			roleDisabled = false;
 		}
 	}
-
 </script>
 
 <tr class="h-14 align-top">
@@ -58,28 +57,30 @@
 		<div class="truncate mask-ellipse text-sm text-base-content/65">{user.email}</div>
 	</td>
 
-	<td class="flex flex-row items-center justify-between">
-		<div class="text-xs">
-			<div class="h-4">
+	<td class="align-middle">
+		<div class="flex items-center justify-between gap-2">
+			<div class="text-xs">
+				<div class="h-4">
+					{#if user.disabled_at === null}
+						<span class="font-bold text-success">Active</span>
+					{:else}
+						<span class="font-bold text-warning">Disabled {new Date(user.disabled_at).toLocaleString()}</span>
+					{/if}
+				</div>
+				<div class="h-3 text-base-content/75">
+					{user.disabled_reason ?? ''}
+				</div>
+			</div>
+
+			<div>
 				{#if user.disabled_at === null}
-					<span class="font-bold text-success">Active</span>
+					<button class="btn w-16 btn-xs btn-error" disabled={busy} onclick={() => requestDisable(user)}>
+						Disable
+					</button>
 				{:else}
-					<span class="font-bold text-warning">Disabled {new Date(user.disabled_at).toLocaleString()}</span>
+					<button class="btn w-16 btn-xs btn-success" disabled={busy} onclick={() => enableUser(user)}> Enable </button>
 				{/if}
 			</div>
-			<div class="h-3 text-base-content/75">
-				{user.disabled_reason ?? ''}
-			</div>
-		</div>
-
-		<div>
-			{#if user.disabled_at === null}
-				<button class="btn w-16 btn-xs btn-error" disabled={busy} onclick={() => requestDisable(user)}>
-					Disable
-				</button>
-			{:else}
-				<button class="btn w-16 btn-xs btn-success" disabled={busy} onclick={() => enableUser(user)}> Enable </button>
-			{/if}
 		</div>
 	</td>
 
