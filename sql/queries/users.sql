@@ -85,3 +85,63 @@ WHERE
   AND
   organization_id = sqlc.arg('organization_id')::UUID
 RETURNING *;
+
+-- name: TransferOrganizationOwnership :many
+WITH
+  lock_org AS (
+    SELECT id
+    FROM organizations
+    WHERE id = sqlc.arg('organization_id')::UUID
+    FOR UPDATE
+  ),
+  actor_owner AS (
+    SELECT user_id
+    FROM user_organization_assignments
+    WHERE organization_id = sqlc.arg('organization_id')::UUID
+      AND user_id = sqlc.arg('old_owner_user_id')::UUID
+      AND role = 3
+    FOR UPDATE
+  ),
+  current_owner AS (
+    SELECT user_id
+    FROM user_organization_assignments
+    WHERE organization_id = sqlc.arg('organization_id')::UUID
+      AND role = 3
+    FOR UPDATE
+  ),
+  target AS (
+    SELECT user_id
+    FROM user_organization_assignments
+    WHERE organization_id = sqlc.arg('organization_id')::UUID
+      AND user_id = sqlc.arg('new_owner_user_id')::UUID
+    FOR UPDATE
+  ),
+  target_enabled AS (
+    SELECT 1
+    FROM user_organization_assignments
+    WHERE organization_id = sqlc.arg('organization_id')::UUID
+      AND user_id = sqlc.arg('new_owner_user_id')::UUID
+      AND disabled_at IS NULL
+  ),
+  demote AS (
+    UPDATE user_organization_assignments uoa
+    SET role = 2
+    FROM actor_owner ao, current_owner co, target t, target_enabled te
+    WHERE uoa.organization_id = sqlc.arg('organization_id')::uuid
+      AND uoa.user_id = co.user_id
+      AND uoa.role = 3
+      AND co.user_id <> t.user_id
+    RETURNING uoa.*
+  ),
+  promote AS (
+    UPDATE user_organization_assignments uoa
+    SET role = 3
+    FROM actor_owner ao, target t, target_enabled te
+    WHERE uoa.organization_id = sqlc.arg('organization_id')::uuid
+      AND uoa.user_id = t.user_id
+      AND uoa.disabled_at IS NULL
+    RETURNING uoa.*
+  )
+SELECT * FROM demote
+UNION ALL
+SELECT * FROM promote;

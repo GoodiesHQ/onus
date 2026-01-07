@@ -231,4 +231,7 @@ type Core interface {
 	DisableUser(ctx context.Context, userID, orgID uuid.UUID, reason string) (*UserOrganizationAssignment, error)
 	UpdateUserName(ctx context.Context, userID uuid.UUID, name string) (*User, error)
 	UpdateUserRole(ctx context.Context, userID, orgID uuid.UUID, role UserOrgRole) (*UserOrganizationAssignment, error)
+
+	// Owner management
+	TransferOwnership(ctx context.Context, oldOwnerUserID, newOwnerUserID, orgID uuid.UUID) error
 }

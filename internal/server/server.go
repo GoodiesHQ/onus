@@ -287,6 +287,14 @@ func (s *OnusServer) routes(ctx context.Context) *chi.Mux {
 				})
 			})
 		})
+
+		r.Route("/owner", func(r chi.Router) {
+			// All owner routes require owner role
+			r.Use(MiddlewareMinRole(s.sm, s.core, core.RoleOwner))
+
+			// Transfer organization ownership
+			r.Post("/transfer", handler.PostApiOwnerTransfer)
+		})
 	})
 
 	return r

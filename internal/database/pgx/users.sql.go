@@ -209,6 +209,109 @@ func (q *Queries) ListEnabledUsersByOrganizationID(ctx context.Context, arg List
 	return items, nil
 }
 
+const transferOrganizationOwnership = `-- name: TransferOrganizationOwnership :many
+WITH
+  lock_org AS (
+    SELECT id
+    FROM organizations
+    WHERE id = $1::UUID
+    FOR UPDATE
+  ),
+  actor_owner AS (
+    SELECT user_id
+    FROM user_organization_assignments
+    WHERE organization_id = $1::UUID
+      AND user_id = $2::UUID
+      AND role = 3
+    FOR UPDATE
+  ),
+  current_owner AS (
+    SELECT user_id
+    FROM user_organization_assignments
+    WHERE organization_id = $1::UUID
+      AND role = 3
+    FOR UPDATE
+  ),
+  target AS (
+    SELECT user_id
+    FROM user_organization_assignments
+    WHERE organization_id = $1::UUID
+      AND user_id = $3::UUID
+    FOR UPDATE
+  ),
+  target_enabled AS (
+    SELECT 1
+    FROM user_organization_assignments
+    WHERE organization_id = $1::UUID
+      AND user_id = $3::UUID
+      AND disabled_at IS NULL
+  ),
+  demote AS (
+    UPDATE user_organization_assignments uoa
+    SET role = 2
+    FROM actor_owner ao, current_owner co, target t, target_enabled te
+    WHERE uoa.organization_id = $1::uuid
+      AND uoa.user_id = co.user_id
+      AND uoa.role = 3
+      AND co.user_id <> t.user_id
+    RETURNING uoa.user_id, uoa.organization_id, uoa.role, uoa.disabled_at, uoa.disabled_reason, uoa.created_at
+  ),
+  promote AS (
+    UPDATE user_organization_assignments uoa
+    SET role = 3
+    FROM actor_owner ao, target t, target_enabled te
+    WHERE uoa.organization_id = $1::uuid
+      AND uoa.user_id = t.user_id
+      AND uoa.disabled_at IS NULL
+    RETURNING uoa.user_id, uoa.organization_id, uoa.role, uoa.disabled_at, uoa.disabled_reason, uoa.created_at
+  )
+SELECT user_id, organization_id, role, disabled_at, disabled_reason, created_at FROM demote
+UNION ALL
+SELECT user_id, organization_id, role, disabled_at, disabled_reason, created_at FROM promote
+`
+
+type TransferOrganizationOwnershipParams struct {
+	OrganizationID uuid.UUID `db:"organization_id" json:"organization_id"`
+	ActorUserID    uuid.UUID `db:"actor_user_id" json:"actor_user_id"`
+	NewOwnerUserID uuid.UUID `db:"new_owner_user_id" json:"new_owner_user_id"`
+}
+
+type TransferOrganizationOwnershipRow struct {
+	UserID         uuid.UUID  `db:"user_id" json:"user_id"`
+	OrganizationID uuid.UUID  `db:"organization_id" json:"organization_id"`
+	Role           int16      `db:"role" json:"role"`
+	DisabledAt     *time.Time `db:"disabled_at" json:"disabled_at"`
+	DisabledReason *string    `db:"disabled_reason" json:"disabled_reason"`
+	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
+}
+
+func (q *Queries) TransferOrganizationOwnership(ctx context.Context, arg TransferOrganizationOwnershipParams) ([]TransferOrganizationOwnershipRow, error) {
+	rows, err := q.db.Query(ctx, transferOrganizationOwnership, arg.OrganizationID, arg.ActorUserID, arg.NewOwnerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TransferOrganizationOwnershipRow
+	for rows.Next() {
+		var i TransferOrganizationOwnershipRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.OrganizationID,
+			&i.Role,
+			&i.DisabledAt,
+			&i.DisabledReason,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUserName = `-- name: UpdateUserName :one
 UPDATE users
 SET
